@@ -182,9 +182,11 @@ def create_Network():
     @rtype: Network
     @return: A Network object
     """
-    ssid, id_str = 'MCC-Guest'
+    ssid = 'MCC-Guest'
+    id_str = 'MCC-Guest'
     key_mgmt = 'NONE'
-    identity, passphrase = None
+    identity = None
+    passphrase = None
     priority = '0'
 
     new_ssid = raw_input("Please enter the desired SSID (default is " + ssid +
@@ -251,13 +253,13 @@ def main():
                 first_run = False
             else:
                 continue
-        netList.append(create_Network)
+        netList.append(create_Network())
     wpa_supplicant_conf = gen_wpa_supplicant(netList)
     interfaces_conf = gen_interfaces(netList)
     show_new = raw_input("Would you like to see the new configuration files?"
                          " (Y/N)\n> ")
     if show_new in ['y','Y']:
-        print(wpa_supplicant)
+        print(wpa_supplicant_conf)
     save_new = raw_input("Would you like to save the new configuration files?"
                          " (Y/N)\n> ")
     if save_new in ['y','Y']:
@@ -267,7 +269,7 @@ def main():
         chmod('600', 'wpa_supplicant.conf')
         chown('root:', 'wpa_supplicant.conf')
         interfaces_file = open('interfaces', 'w')
-        interfaces_file.write('interfaces_conf')
+        interfaces_file.write(interfaces_conf)
         interfaces_file.close()
         chmod('644', 'interfaces')
         chown('root:', 'interfaces')

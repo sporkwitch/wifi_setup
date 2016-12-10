@@ -95,32 +95,63 @@ class Network(object):
         
         return blockStr
 
-def write_wpa_supplicant(netList = None, country = 'US'):
+def chmod(modeStr, targetFile):
     """
-    Write out a wpa_supplicant.conf
+    set modeStr on targetFile
 
+    @type modeStr: string
+    @param modeStr: the octal permissions to be set
+    @type targetFile: string
+    @param targetFile: the relative or absolute path to the target file
+
+    @rtype: number
+    @return: 0 if successful
+    """
+    #TODO implement
+
+def chown(userName, targetFile):
+    """
+    set userName as owner of targetFile
+
+    @type userName: string
+    @param userName: the name of the user to set as owner
+    @type targetFile: string
+    @param targetFile: the relative or absolute path to the target file
+
+    @rtype: number
+    @return: 0 if successful
+    """
+    #TODO implement
+
+def gen_wpa_supplicant(netList = None, country = 'US'):
+    """
+    Generate a wpa_supplicant.conf
+
+    @type netList: string
     @param netList: A list of Network objects
+    @type country: string
+    @param country: Wifi country code
 
-    @rtype: bool
-    @return: True on successful write, else False
+    @rtype: string
+    @return: A wpa_supplicant.conf file in string form
     """
     blockStr = 'country=' + country + '\n'
     blockStr += 'ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev\n'
-    blockStr += 'update_config=1\n\n'
-    #TODO Loop to concatenate objects from list
-    #TODO write to file
-    #TODO chmod 600 file
-    #TODO chown root: file
-    return False
+    blockStr += 'update_config=1\n'
+    if netList:
+        for net in netList:
+            blockStr += '\n' + str(net)
 
-def write_interfaces(netList = None):
+    return blockStr
+
+def gen_interfaces(netList = None):
     """
-    Take user input and write out an interfaces file
+    Generate an interfaces file
 
     @param netList: A list of Network objects
 
-    @rtype: bool
-    @return: True on successful write, else False
+    @rtype: string
+    @return: An interfaces file in string form
     """
     blockStr = '# interfaces(5) file used by ifup(8) and ifdown(8)\n\n'
     blockStr += '# Please note that this file is written to be used with dhcpcd\n'
@@ -141,9 +172,8 @@ def write_interfaces(netList = None):
             blockStr += 'iface ' + net.id_str + ' inet dhcp\n'
     else:
         blockStr += 'wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf\n'
-    #TODO Write to file
-    #TODO change perms on file
-    return False
+
+    return blockStr
 
 def create_Network():
     """
@@ -152,19 +182,48 @@ def create_Network():
     @rtype: Network
     @return: A Network object
     """
-    ssid, id_str = 'MCC-Crypto'
-    key_mgmt = 'WPA-EAP'
+    ssid, id_str = 'MCC-Guest'
+    key_mgmt = 'NONE'
     identity, passphrase = None
     priority = '0'
 
-    #TODO Get SSID
-    #TODO Get friendly name
-    #TODO Get encryption type
-    #TODO If enterprise, get identity
-    #TODO If enterprise or psk, get passphrase
+    new_ssid = raw_input("Please enter the desired SSID (default is " + ssid +
+                         " if blank; spaces not supported)\n> ")
+    if new_ssid != '':
+        ssid = new_ssid
+        id_str = ssid
+    print("Network encryption is supported:")
+    while True:
+        print("1) Non-secure")
+        print("2) WPA Personal (such as a home router)")
+        print("3) WPA Enterprise (such as university wifi")
+        encryption_type = raw_input("What type of encryption will this network"
+                                    "use? (Default: Non-secure)\n> ")
+        if encryption_type in ['','1','2','3']:
+            if encryption_type == '2':
+                key_mgmt = 'WPA-PSK'
+            elif encryption_type == '3':
+                key_mgmt = 'WPA-EAP'
+            break
+    friendly_name = raw_input("What would you like to name this profile? "
+                              "(Default is " + ssid + "; spaces not supported)\n> ")
+    if friendly_name != '':
+        id_str = friendly_name
+    if key_mgmt == 'WPA-EAP':
+        identity = raw_input ("Please input your username.  This will usually"
+                              " be either your account username or the full"
+                              " email address associated with your account\n> ")
+    if key_mgmt != 'NONE':
+        passphrase = raw_input("Please input the passphrase for this network /"
+                               " account\n> ")
     newNetwork = Network(ssid,id_str,key_mgmt,passphrase,identity)
-    #TODO Get and set priority
-    newNetwork.priority = priority
+    print("A priority can be assigned to this network.  Negative and positive"
+          " values are supported.  The device will attempt to connect to the"
+          " network with the highest value currently available.")
+    priority = raw_input("Please set a priority, or leave blank for neutral"
+                         " (0)\n> ")
+    if priority != '':
+        newNetwork.priority = priority
 
     return newNetwork
 
@@ -174,13 +233,50 @@ def main():
     @return: 0 on successful completion
     """
     #TODO Loop asking to add networks
-    #   TODO list.add(create_Network())
-    #TODO Ask to backup original files
-    #TODO Ask to copy new files
-    if False:
-        return 0
-    else:
-        return 1
+    first_run = True
+    netList = []
+    while True:
+        if not first_run:
+            response = raw_input("Would you like to add another network?"
+                                 " (Y/N)\n> ")
+            if response in ['n','N']:
+                break
+        elif first_run:
+            response = raw_input("Would you like to add a wireless network?"
+                                 " (Y/N)\n> ")
+            if response in ['n','N']:
+                print("Bye!")
+                exit()
+            elif response in ['y','Y']:
+                first_run = False
+            else:
+                continue
+        netList.append(create_Network)
+    wpa_supplicant_conf = gen_wpa_supplicant(netList)
+    interfaces_conf = gen_interfaces(netList)
+    show_new = raw_input("Would you like to see the new configuration files?"
+                         " (Y/N)\n> ")
+    if show_new in ['y','Y']:
+        print(wpa_supplicant)
+    save_new = raw_input("Would you like to save the new configuration files?"
+                         " (Y/N)\n> ")
+    if save_new in ['y','Y']:
+        wpa_supplicant_file = open('wpa_supplicant.conf', 'w')
+        wpa_supplicant_file.write(wpa_supplicant_conf)
+        wpa_supplicant_file.close()
+        chmod('600', 'wpa_supplicant.conf')
+        chown('root:', 'wpa_supplicant.conf')
+        interfaces_file = open('interfaces', 'w')
+        interfaces_file.write('interfaces_conf')
+        interfaces_file.close()
+        chmod('644', 'interfaces')
+        chown('root:', 'interfaces')
+
+    backup = raw_input("Would you like to backup the original, default"
+                       " configuration files? (Y/N)\n> ")
+    install = raw_input("Would you like to install the new configuration files?"
+                        " (Y/N)\n> ")
+    return 0
 
 if __name__ == "__main__":
     main()

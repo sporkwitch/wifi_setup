@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 
 # Copyright (C) 2016 Robert Klebes
 #
@@ -33,7 +33,7 @@ __author__ = "Robert Klebes"
 __email__ = "rklebes@student.monroecc.edu"
 __copyright__ = "Copyright 2016, Robert Klebes"
 __license__ = "GPLv3"
-__version__ = "0.1"
+__version__ = "0.5"
 
 YES = ['y', 'Y', 'yes', 'Yes', 'YES']
 NO = ['n', 'N', 'no', 'No', 'NO']

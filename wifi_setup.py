@@ -25,25 +25,31 @@ Date created:   20161210
 Last modified:  20161210
 Python Version: 2.7
 '''
-__author__      = "Robert Klebes"
-__email__       = "rklebes@student.monroecc.edu"
-__copyright__   = "Copyright 2016, Robert Klebes"
-__license__     = "GPLv3"
-__version__     = "0.1"
 
 import subprocess
+
+
+__author__ = "Robert Klebes"
+__email__ = "rklebes@student.monroecc.edu"
+__copyright__ = "Copyright 2016, Robert Klebes"
+__license__ = "GPLv3"
+__version__ = "0.1"
+
+YES = ['y', 'Y', 'yes', 'Yes', 'YES']
+NO = ['n', 'N', 'no', 'No', 'NO']
+
 
 class Network(object):
     """
     A Network object
     """
-    ssid        =   ''
-    id_str      =   ''
-    key_mgmt    =   'NONE'
-    priority    =   '0'
+    ssid = ''
+    id_str = ''
+    key_mgmt = 'NONE'
+    priority = '0'
 
-    def __init__(self, ssid_Val, id_str_Val = None, key_mgmt_Val = None,
-                 passphrase_Val = None, identity_Val = None):
+    def __init__(self, ssid_Val, id_str_Val=None, key_mgmt_Val=None,
+                 passphrase_Val=None, identity_Val=None):
         """
         Initialize a Network object
 
@@ -92,8 +98,9 @@ class Network(object):
         blockStr += '    id_str="' + self.id_str + '"\n'
         blockStr += '    priority=' + self.priority + '\n'
         blockStr += '}\n'
-        
+
         return blockStr
+
 
 def chmod(modeStr, targetFile):
     """
@@ -107,7 +114,8 @@ def chmod(modeStr, targetFile):
     @rtype: number
     @return: 0 if successful
     """
-    #TODO implement
+    # TODO implement
+
 
 def chown(userName, targetFile):
     """
@@ -121,9 +129,10 @@ def chown(userName, targetFile):
     @rtype: number
     @return: 0 if successful
     """
-    #TODO implement
+    # TODO implement
 
-def gen_wpa_supplicant(netList = None, country = 'US'):
+
+def gen_wpa_supplicant(netList=None, country='US'):
     """
     Generate a wpa_supplicant.conf
 
@@ -144,7 +153,8 @@ def gen_wpa_supplicant(netList = None, country = 'US'):
 
     return blockStr
 
-def gen_interfaces(netList = None):
+
+def gen_interfaces(netList=None):
     """
     Generate an interfaces file
 
@@ -175,6 +185,7 @@ def gen_interfaces(netList = None):
 
     return blockStr
 
+
 def create_Network():
     """
     Create a Network object from user input
@@ -201,7 +212,7 @@ def create_Network():
         print("3) WPA Enterprise (such as university wifi")
         encryption_type = raw_input("What type of encryption will this network"
                                     "use? (Default: Non-secure)\n> ")
-        if encryption_type in ['','1','2','3']:
+        if encryption_type in ['', '1', '2', '3']:
             if encryption_type == '2':
                 key_mgmt = 'WPA-PSK'
             elif encryption_type == '3':
@@ -212,13 +223,13 @@ def create_Network():
     if friendly_name != '':
         id_str = friendly_name
     if key_mgmt == 'WPA-EAP':
-        identity = raw_input ("Please input your username.  This will usually"
-                              " be either your account username or the full"
-                              " email address associated with your account\n> ")
+        identity = raw_input("Please input your username.  This will usually"
+                             " be either your account username or the full"
+                             " email address associated with your account\n> ")
     if key_mgmt != 'NONE':
         passphrase = raw_input("Please input the passphrase for this network /"
                                " account\n> ")
-    newNetwork = Network(ssid,id_str,key_mgmt,passphrase,identity)
+    newNetwork = Network(ssid, id_str, key_mgmt, passphrase, identity)
     print("A priority can be assigned to this network.  Negative and positive"
           " values are supported.  The device will attempt to connect to the"
           " network with the highest value currently available.")
@@ -229,27 +240,28 @@ def create_Network():
 
     return newNetwork
 
+
 def main():
     """
     @rtype: number
     @return: 0 on successful completion
     """
-    #TODO Loop asking to add networks
+    # TODO Loop asking to add networks
     first_run = True
     netList = []
     while True:
         if not first_run:
             response = raw_input("Would you like to add another network?"
                                  " (Y/N)\n> ")
-            if response in ['n','N']:
+            if response in NO:
                 break
         elif first_run:
             response = raw_input("Would you like to add a wireless network?"
                                  " (Y/N)\n> ")
-            if response in ['n','N']:
+            if response in NO:
                 print("Bye!")
                 exit()
-            elif response in ['y','Y']:
+            elif response in YES:
                 first_run = False
             else:
                 continue
@@ -258,11 +270,11 @@ def main():
     interfaces_conf = gen_interfaces(netList)
     show_new = raw_input("Would you like to see the new configuration files?"
                          " (Y/N)\n> ")
-    if show_new in ['y','Y']:
+    if show_new in YES:
         print(wpa_supplicant_conf)
     save_new = raw_input("Would you like to save the new configuration files?"
                          " (Y/N)\n> ")
-    if save_new in ['y','Y']:
+    if save_new in YES:
         wpa_supplicant_file = open('wpa_supplicant.conf', 'w')
         wpa_supplicant_file.write(wpa_supplicant_conf)
         wpa_supplicant_file.close()
@@ -279,6 +291,7 @@ def main():
     install = raw_input("Would you like to install the new configuration files?"
                         " (Y/N)\n> ")
     return 0
+
 
 if __name__ == "__main__":
     main()
